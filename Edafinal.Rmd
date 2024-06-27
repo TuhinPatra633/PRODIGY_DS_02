@@ -1,0 +1,308 @@
+---
+---
+---
+
+# [INDIAN IPOs 2010-23]{.underline}
+
+## Importing Data
+
+```{r}
+library(readxl)
+IPO <- read_excel("D:\\EDA DATASET\\IPO.xlsx")
+View(IPO)
+```
+
+## Loading Libraries :
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(corrplot)
+```
+
+## **About this Data Set**
+
+### **Context**
+
+#### **Indian IPO(Initial Public Offering) Data set from 2010 to 2023.**
+
+### **Content**
+
+A brief description of the columns:
+
+-   **Date:** In Which Date IPO is listed on stock exchanges
+
+-   **Issue Size(in Crore)**: How much amount the company wants to collect from public.
+
+-   **QIB**: Subscription rate of Qualified institutional buyer(like Mutual Fund, Life Insurance Company)
+
+-   **Subscription Rate**: An estimate of how many bids are received for each investor category,divided by number of bids company wanted from that category. Ex- Suppose a Company want 10 Cr from investor, but 5000 people apply for the IPO and their total bidding amount is 20 Cr, then Subscription Rate is 2\*
+
+-   **HNI** :Subscription rate of HNI Category\
+    Any individual looking to invest ₹ 2 lakhs or more is categorized under 'HNI' (High Net-Worth Individual).
+
+-   **RII**: Subscription rate of Retail Individual Investor (RII)\
+    Resident Indian Individuals, NRIs and HUFs who apply for less than Rs 2 lakhs in an IPO under RII category.
+
+-   **Issue Price**: The offering Price at which shares are offered to the public by the company.
+
+-   **Listing Open(in Rupees)**: After Listing on the stock exchange at listing day,at which price IPO started treading.
+
+-   **Listing Close(in Rupees)**: Last traded price of the shares at the listing day
+
+-   **Listing Gains(in %)**: $(Listing Close-IssuePrice)/Issue Price$
+
+-   **CMP(in Rupees)**: Current Market Price of the stock.
+
+-   **Current Gains(in %)**: $(CMP-IssuePrice)/IssuePrice$
+
+### **Acknowledgements**
+
+**I have got this data from moneycontrol.**
+
+# [Observations :]{.underline}
+
+## 1. Which year is the biggest year in form of total number of IPO and total issue size?
+
+```{r}
+peryr<-as.data.frame(table(IPO$Year))
+colnames(peryr)<-c("Year","No._of_IPO")
+peryr
+
+ggplot(peryr,aes(x=Year,y=No._of_IPO))+
+  geom_bar(stat="Identity",fill=peryr$Year)+
+  geom_text(aes(label=No._of_IPO),vjust=-0.3,size=3)+
+  xlab("Year")+
+  ylab("No. of IPOs")+coord_cartesian(ylim = c(0,70))+
+  scale_y_continuous(breaks = c(0,10,20,30,40,50,60,70) )+
+  ggtitle("No. of IPOs per year")
+  
+
+  totalsize<-aggregate(x=IPO$`Issue Size`,by=list(IPO$Year),FUN=sum)
+colnames(totalsize)<-c("Year","Total")
+ggplot(totalsize,aes(x=Year,y=Total))+
+  geom_bar(stat="Identity",fill=totalsize$Year)+
+  geom_text(aes(label=Total),vjust=-0.3,size=3)+xlab("Year")+
+    ylab("Total issue size(in Cr)")+ coord_cartesian(ylim = c(0,140000))+
+  scale_y_continuous(breaks = c(0,20000,40000,60000,80000,100000,120000,140000) )+
+  scale_x_continuous(breaks = c(2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023))+
+  ggtitle("Year Wise Total Issue Size")
+collected_amount=subset(IPO,Year==2021)
+
+
+collected_amount=subset(IPO,Year==2021)
+sub_count=subset(collected_amount,collected_amount$`Total `>=1)
+a<-length(sub_count$`Total `)
+b<-length(collected_amount$`Total `)
+cat("Number of Ipos in 2021 that have >=1 subscription rate is", a,"and number of total Ipos in 2021 is", b )
+
+```
+
+## [Conclusion:]{.underline}
+
+**1. From the bar plot we can see that 2021 has highest number of IPO and it also surpassed the other years in account of total issue size. Which is quite surprising because of pandemic scenario in 2021. I think COVID-19 has pushed more and more companies for IPO.**
+
+**Not only that, In 2021 People also invested in the IPOs. Out of 62 IPOs 56 is fully subscribed or over subscribed.That means despite of pandemic people are also ready to invest in IPOs and they did it.**
+
+**2. In 2010, despite of 59 IPOs which is 2nd highest(1.5-3 timer bigger than most of the years) number of IPOs in our data, It raised less capital(36646 Cr).**
+
+## 2.Is there any specific time of a year that anyone can expect more IPOs than other time?
+
+```{r}
+permonth<-as.data.frame(table(IPO$Month))
+colnames(permonth)<-c("Month","No._of_IPO")
+permonth
+
+ggplot(permonth,aes(x=Month,y=No._of_IPO))+
+  geom_bar(stat="Identity",fill=permonth$Month)+
+  geom_text(aes(label=No._of_IPO),vjust=-0.3,size=3)+
+  xlab("Month")+
+  ylab("No. of IPOs")+coord_cartesian(ylim = c(0,50))+
+  scale_y_continuous(breaks = c(0,10,20,30,40,50) )+
+  ggtitle("No. of IPOs per Month")
+```
+
+## [Conclusion:]{.underline}
+
+**From the bar plot we can see that January has least number of IPOs over the years and October has the highest. So, January is not the ideal time to wait for the IPOs.**
+
+**Number of IPOs in 3rd and 4th quarter of the year is higher than the 1st and 2nd quarter. So one can expect more IPOs in 3rd and 4th quarter.**
+
+## 3.Investing in IPOs is profitable or not?
+
+```{r}
+listing_gain=c(((IPO$`Listing Close`)-IPO$`Issue Price`))
+positive_gain=subset(listing_gain,listing_gain>0)
+negative_gain=subset(listing_gain,listing_gain<0)
+data <- data.frame(
+  Category = c("Profit", "Loss "),
+  Value = c(length(positive_gain),length(negative_gain)),
+  Percentage=c(length(positive_gain)*100/length(listing_gain),length(negative_gain)*100/length(listing_gain))
+)
+pie_chart <- ggplot(data, aes(x = 1, y = Value, fill = Category)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar(theta = "y") +
+  labs(title = "Profit vs Loss",caption  = "Pie Chart", fill = "Category") +
+  theme_void()+
+scale_fill_manual(values = c("darkorange1","dodgerblue")) +
+  theme(
+    legend.position = "right",
+    legend.title = element_text(size = 12),  
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    plot.caption = element_text(hjust = 0.5, vjust = 0, size = 14),
+    axis.title = element_blank(),
+    legend.text = element_text(size = 10),
+    
+  ) +
+  geom_text(
+    aes(label = paste0(Category, " (", sprintf("%.2f", Percentage), "%)")), 
+    position = position_stack(vjust = 0.5),
+    size = 4)
+print(pie_chart)
+print(data)
+
+```
+
+I have consider only listing gain(Listing Close - Issue Price) we plot and conclude about profit and loss.
+
+## [Conclusion:]{.underline}
+
+**From the pie chart we can see that profit percentage is greater. Out of 358 company 200 company make profit which is 55.87% profit. Which is higher percentage of profit than investing ways. So if you add some research in IPOs with this profit percentage(55.87%) that will also increase. So investing in IPOs has more chance of profit than loss.**
+
+## 4.Can we conclude anything about Listing Gains by seeing the Subscription Rate?
+
+```{r}
+x<-IPO[IPO$`Issue Size`<2500,]$`QIB `
+y<-IPO[IPO$`Issue Size`<2500,]$`Listing Gains`
+data<-data.frame(x,y)
+ggplot(data,aes(x=x,y=y))+geom_point(aes(color="Points"),size=2)+
+  scale_color_manual(values=c("Points"="blue"))+xlab("QIB Subscription")+
+  ylab("Listing Gains(%)")+ ggtitle("QIB vs Listing Gains")+
+  coord_cartesian(ylim = c(-100,200))+
+  scale_y_continuous(breaks = c(-100,-50,0,50,100,150,200) )+scale_x_continuous(breaks = c(0,25,50,75,100,125,150,175,200,225))+
+  geom_hline(yintercept = 0,linetype=4,size=.01)+
+  theme(panel.background = element_rect(fill="azure2"),axis.title = element_text(size = 12),axis.text = element_text(size = 10))
+
+x<-IPO[IPO$`Issue Size`<2500,]$`HNI `
+y<-IPO[IPO$`Issue Size`<2500,]$`Listing Gains`
+data<-data.frame(x,y)
+ggplot(data,aes(x=x,y=y))+geom_point(aes(color="Points"),size=2)+
+  scale_color_manual(values=c("Points"="darkorange1"))+xlab("HNI Subscription")+
+  ylab("Listing Gains")+ ggtitle("HNI vs Listing Gains")+coord_cartesian(ylim = c(-100,200))+
+  scale_y_continuous(breaks = c(-100,-50,0,50,100,150,200) )+scale_x_continuous(breaks = c(0,125,250,375,500,625,750,875,1000))+
+  geom_hline(yintercept = 0,linetype=4,size=.01)+
+  theme(panel.background = element_rect(fill="lightskyblue1"),axis.title = element_text(size = 12),axis.text = element_text(size = 10))
+
+x<-IPO[IPO$`Issue Size`<2500,]$`RII `
+y<-IPO[IPO$`Issue Size`<2500,]$`Listing Gains`
+data<-data.frame(x,y)
+ggplot(data,aes(x=x,y=y))+geom_point(aes(color="Points"),size=2)+
+  scale_color_manual(values=c("Points"="darkmagenta"))+xlab("RII Subscription")+
+  ylab("Listing Gains")+ ggtitle("RII vs Listing Gains")+
+  coord_cartesian(ylim = c(-100,200))+
+  scale_y_continuous(breaks = c(-100,-50,0,50,100,150,200) )+scale_x_continuous(breaks = c(0,20,40,60,80,100,120))+
+  geom_hline(yintercept = 0,linetype=4,size=.01)+
+  theme(panel.background = element_rect(fill="powderblue"),axis.title = element_text(size = 12),axis.text = element_text(size = 10))
+
+x<-IPO[IPO$`Issue Size`<2500,]$`Total `
+y<-IPO[IPO$`Issue Size`<2500,]$`Listing Gains`
+data<-data.frame(x,y)
+ggplot(data,aes(x=x,y=y))+geom_point(aes(color="Points"),size=2)+
+  scale_color_manual(values=c("Points"="maroon2"))+xlab("Total Subscription")+
+  ylab("Listing Gains")+ ggtitle("Total Subscription vs Listing Gains")+
+  coord_cartesian(ylim = c(-100,200))+
+  scale_y_continuous(breaks = c(-100,-50,0,50,100,150,200) )+scale_x_continuous(breaks = c(0,50,100,150,200,250,300,325))+
+  geom_hline(yintercept = 0,linetype=4,size=.01)+
+  theme(panel.background = element_rect(fill="snow2"),axis.title = element_text(size = 12),axis.text = element_text(size = 10))
+
+```
+
+## [Conclusion:]{.underline}
+
+**1. In the scatter plot QIB Subscription\<50 looks more dense with negative listing gains. QIB Subscription \>=50 area shows more positive gains than negative listing gains.So, QIB Subscription\>=50 has a high chance of positive listing gains.**
+
+**2. For the same reason HNI Subscription\>=125 has a high chance of positive listing gains.**
+
+**3. Similarly, RII Subscription\>=20 has a high chance of positive listing gains.**
+
+**4. Total Subscription\>=50 has a high chance of positive listing gains.**
+
+## 5. Is QIB, HNI,RII subscription are related or effected by each other?
+
+```{r}
+Datatree=cbind(IPO$`QIB `,IPO$`HNI `,IPO$`RII `)
+colnames(Datatree)<-c("QIB Subscription","HNI Subscription","RII Subscription")
+cor(Datatree,method = 'kendall')
+library(corrplot)
+par(mfrow=c(1,1));corrplot(cor(Datatree,method = 'kendall'),
+ tl.srt = 30,tl.pos = "bottomleft",method = 'color',
+ addCoef.col = 'aquamarine',tl.col = "black");
+mtext('Correlation Matrix', outer=TRUE,  cex=1.7, line=-1.25,)
+```
+
+## [Conclusion:]{.underline}
+
+**1. QIB,HNI,RII Subscriptions are positively related. It means if QIB subscription has higher value then we can expect that HNI and RII Subscription rate is also high.**
+
+**2.Correlation between QIB and HNI is higher than QIB and RII, means HNI follows QIB more than RII.**
+
+## 6. Which one is better - go for long time investment in the shares of IPO or sale immediately after its listing?
+
+**For this we calculate the difference between Current Market Price and Listing Close Price.**
+
+**And we consider that if the difference is greater than or equal to 5 it is Profitable to take long time investment else it is non-profitable.**
+
+**So we plot the number of total Profitable and Non-profitable IPOs in each year.**
+
+**\*\*In this calculation we did not include the data of 2023 because it is not one year old.**
+
+```{r}
+gaindata<-data.frame(cbind(IPO$Year,IPO$CMP-IPO$`Listing Close`,IPO$`Listing Gains`))
+colnames(gaindata)<-c("Year","CMP-Listing Price","Listing Gains")
+gaindata_2022=subset(gaindata,Year==2022)
+gaindata_2021=subset(gaindata,Year==2021)
+gaindata_2020=subset(gaindata,Year==2020)
+gaindata_2019=subset(gaindata,Year==2019)
+gaindata_2018=subset(gaindata,Year==2018)
+gaindata_2017=subset(gaindata,Year==2017)
+gaindata_2016=subset(gaindata,Year==2016)
+gaindata_2015=subset(gaindata,Year==2015)
+gaindata_2014=subset(gaindata,Year==2014)
+gaindata_2013=subset(gaindata,Year==2013)
+gaindata_2012=subset(gaindata,Year==2012)
+gaindata_2011=subset(gaindata,Year==2011)
+gaindata_2010=subset(gaindata,Year==2022)
+ipos_making_porl=matrix(c(sum(gaindata_2022$`CMP-Listing Price`>=5),sum(gaindata_2021$`CMP-Listing Price`>=5),
+                   sum(gaindata_2020$`CMP-Listing Price`>=5),sum(gaindata_2019$`CMP-Listing Price`>=5),
+                   sum(gaindata_2018$`CMP-Listing Price`>=5),sum(gaindata_2017$`CMP-Listing Price`>=5),
+                   sum(gaindata_2016$`CMP-Listing Price`>=5),sum(gaindata_2015$`CMP-Listing Price`>=5),
+                   sum(gaindata_2014$`CMP-Listing Price`>=5),sum(gaindata_2013$`CMP-Listing Price`>=5),
+                   sum(gaindata_2012$`CMP-Listing Price`>=5),sum(gaindata_2011$`CMP-Listing Price`>=5),
+                   sum(gaindata_2010$`CMP-Listing Price`>=5),
+                   
+                   sum(gaindata_2022$`CMP-Listing Price`<5),sum(gaindata_2021$`CMP-Listing Price`<5),
+                   sum(gaindata_2020$`CMP-Listing Price`<5),sum(gaindata_2019$`CMP-Listing Price`<5),
+                   sum(gaindata_2018$`CMP-Listing Price`<5),sum(gaindata_2017$`CMP-Listing Price`<5),
+                   sum(gaindata_2016$`CMP-Listing Price`<5),sum(gaindata_2015$`CMP-Listing Price`<5),
+                   sum(gaindata_2014$`CMP-Listing Price`<5),sum(gaindata_2013$`CMP-Listing Price`<5),
+                   sum(gaindata_2012$`CMP-Listing Price`<5),sum(gaindata_2011$`CMP-Listing Price`<5),
+                   sum(gaindata_2010$`CMP-Listing Price`<5)),nrow=2,byrow = TRUE)
+Years=c(2022,2021,2020,2019,2018,2017,2016,2015,2014,2013,2012,2011,2010)
+colnames(ipos_making_porl)=Years
+categories=c("Profit Making IPOs","Loss Making IPOs")
+rownames(ipos_making_porl)=categories
+colors=c("red","blue")  
+barplot(ipos_making_porl,main = "Number of IPO's Making Profit and Loss in Long Time",
+        names.arg =Years,xlab = "Years",
+        ylab = "No. of IPo's",ylim=c(0,50),col = colors,beside = TRUE)  
+legend("topright", categories, cex = .8, fill = colors)
+title(sub='Multiple bar diagram')
+```
+
+## [Conclusion:]{.underline}
+
+**From the multiple bar diagram we can see that, in maximum year number of profitable IPOs is greater than Loss making IPOs(in long Time).**
+
+**So it will somewhat better to take long time investment rather than short time investment. Also there are 3 exception year 2011,2012,2015.**
+
+**So,for a safe trader it will better to exit after getting listing gains.**
