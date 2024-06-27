@@ -34,5 +34,5 @@ For a detailed analysis and visualizations, refer to the `Edafinal.Rmd` and `Eda
 
 You can view the HTML version of the analysis directly by clicking [here](https://htmlpreview.github.io/?https://github.com/TuhinPatra633/Exploratory-Data-Analysis/blob/main/Edafinal.html).
 
-Alternatively, you can view the raw R Markdown file by clicking [here](https://github.com/TuhinPatra633/Exploratory-Data-Analysis/blob/main/Edafinal.Rmd).
+Alternatively, you can view the raw R Markdown file by clicking [here](https://github.com/TuhinPatra633/PRODIGY_DS_02/blob/main/Edafinal.Rmd).
 
