@@ -36,10 +36,3 @@ You can view the HTML version of the analysis directly by clicking [here](https:
 
 Alternatively, you can view the raw R Markdown file by clicking [here](https://github.com/TuhinPatra633/Exploratory-Data-Analysis/blob/main/Edafinal.Rmd).
 
-## Reproducing the Analysis
-
-To reproduce the analysis:
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/TuhinPatra633/Exploratory-Data-Analysis.git
