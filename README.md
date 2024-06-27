@@ -27,8 +27,8 @@ For a detailed analysis and visualizations, refer to the `Edafinal.Rmd` and `Eda
 
 ## Files
 
-- `eda.Rmd`: The R Markdown file containing the code and analysis.
-- `eda.html`: The HTML file generated from the R Markdown file, viewable in any web browser.
+- `Edafinal.Rmd`: The R Markdown file containing the code and analysis.
+- `Edafinal.html`: The HTML file generated from the R Markdown file, viewable in any web browser.
 
 ## Viewing the Analysis
 
